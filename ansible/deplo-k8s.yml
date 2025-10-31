@@ -1,0 +1,14 @@
+---
+- name: Deploy Kubernetes App to AKS
+  hosts: local
+  become: false
+
+  tasks:
+    - name: Apply Deployment
+      command: kubectl apply -f ../k8s/deployment.yaml
+
+    - name: Apply Service
+      command: kubectl apply -f ../k8s/service.yaml
+
+    - name: Wait for pods to be ready
+      command: kubectl rollout status deployment/devops-app

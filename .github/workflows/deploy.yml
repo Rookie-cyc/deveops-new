@@ -1,0 +1,39 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Azure CLI - Login to ACR
+      run: |
+        az acr login --name rookieacr2025
+
+    - name: Build & Push Docker Image to ACR
+      run: |
+        IMAGE=rookieacr2025.azurecr.io/devops-app:latest
+        docker build -t $IMAGE .
+        docker push $IMAGE
+
+    - name: Get AKS Credentials
+      run: |
+        az aks get-credentials --resource-group rookie-rg --name rookie-aks-cluster --overwrite-existing
+
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f deployment.yml
+        kubectl apply -f service.yml
